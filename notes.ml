@@ -626,7 +626,93 @@ val compile : exp -> opcode list = <fun>
   | (s, CONST(n)::c') -> execute(n::s,c')
   | (n2::n1::s',PLUS::c') -> execute(n1+n2::s',c')
   | _ -> raise EmptyTree;;
-        val execute : int list * opcode list -> int = <fun>
+val execute : int list * opcode list -> int = <fun>
+(*
+    |   |
+    |~~~|   [] => halt and do something
+    |   |
+    |___|
+      s
+
+    |   |                        | n |
+    |~~~|  Const(n)::c'          |~~~| , c'
+    |   |  (doesn't care what's  |   |
+    |___|  in the stack already) |___|
+      s                            s
+
+      n2
+    | n1|   PLUS::c'                           ===>      | n3|
+    |~~~|   (expects something on the stack)             |~~~| , c'   where n3 = n2+n1
+    |   |                                                |   |
+    |___|                                                |___|
+      s                                                    s
+*)
+
+# let z = Plus(x,y);;
+val z : exp = Plus (Plus (Const 4, Const 7), Plus (Const 7, Const 4))
+# let prgm = compile z;;
+val prgm : opcode list =
+  [CONST 4; CONST 7; PLUS; CONST 7; CONST 4; PLUS; PLUS]
+# execute ([],prgm);;
+- : int = 22
+# eval z;;
+- : int = 22
+(*
+    look at handwritten notes for reference
+*)
+
+(*
+    compiler -> want to run it on a particular kind of machine
+    prgm ∈ opcode list
+
+    eval -> interpreter
+    e ∈ exp -> programming language
+
+    e ∈ exp -----eval(1)(interpreter)--------> n ∈ Z(RESULT)
+    e ∈ exp -----compile(2)------> (prgm ∈ opcode list) == (s ,prgm) ----completed the picture(3)----> n ∈ Z(RESULT)
+
+    (s, prgm) -> the assembly level obtained
+    (3) => runnig assembly level program on a machine
+
+    SECURITY <= compile,execute -> if a program given is the result of compiling an expression
+                                   and I started w an arbit stack, I'd not look at what the contents
+                                   are, nor violate the integrity of the stack
+
+    (COMPILING + RUNNING)   gives the same result as (INTERPRETER)
+
+    definitional interpretor => The meaning of the whole is obtained from the mening of the parts
+
+                                There is a recursive and deterministic function to evaluate a complex expression
+                                by evaluating sub-expressions and then using the results
+
+    Conceptually, stack is unbound
+
+    |   |
+    |~~~|  => when do you look below the sea level?
+    |   |
+    |___|
+      s
+
+    stack smashing (in C)? => large string arguments go beneath the sea level
+                              when return hit, not only the vaue is returned, but the address as well
+                              and then the address is modified and taken to the address of the virus
+                              installed to be executed
+
+    @ least scream, whenever the algorithm tries to cross the laxman rekha
+
+    moral :- keep the stack abstractions vv secure
+
+    read => Meltdown!
+
+    to make the system faster, the processor looks into the parts of the memory where it should not
+
+    sandbox abstraction was broken down
+
+
+*)
+
+
+
 
 
 
